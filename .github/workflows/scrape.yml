@@ -1,0 +1,36 @@
+name: Daily K-pop news scrape
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run scrape
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGO_DB: ${{ vars.MONGO_DB || 'kpop_news' }}
+          MONGO_COLLECTION: ${{ vars.MONGO_COLLECTION || 'articles' }}
+        run: python run_scrape.py
+
+      - name: Upload Excel export
+        uses: actions/upload-artifact@v4
+        with:
+          name: kpop-news-excel
+          path: kpop_news.xlsx
+          retention-days: 30

@@ -1,0 +1,26 @@
+services:
+  api:
+    build: .
+    image: kpop-news-scraper:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./exports:/app/exports
+    environment:
+      - EXCEL_EXPORT_PATH=/app/exports/kpop_news.xlsx
+    command: ["python", "run_server.py"]
+
+  scheduler:
+    build: .
+    image: kpop-news-scraper:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./logs:/app/logs
+      - ./exports:/app/exports
+    environment:
+      - EXCEL_EXPORT_PATH=/app/exports/kpop_news.xlsx
+    command: ["python", "-m", "app.scheduler"]
